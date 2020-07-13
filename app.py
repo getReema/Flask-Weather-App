@@ -1,5 +1,6 @@
-#here we create our flask application and call our API
-#to call our API we need the link URL
+#here I create  flask application and call weather API
+#to call the API I'd need the link URL
+#use zip code : 95129 bc the country isn't defined.
 import requests
 import configparser
 from flask import Flask, render_template, request
