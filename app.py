@@ -15,11 +15,15 @@ def weather_dashboard():
 @app.route('/results', methods=['POST']) #the way to access this is via a POST Req
 def render_results():
     zip_code= request.form['zipCode'] #Accessing the html element named zipCode
-    return "Zip Code: "+ zip_code
+    api_key= get_api_key()
+    data= get_weather_results(zip_code,api_key)
+    temp= "{0:.2f}".format(data["main"]["temp"]) #to get a value from the dictionary as string
+    feels_like= "{0:.2f}".format(data["main"]["feels_like"])
+    weather= data["weather"][0]["main"]
+    location= data["name"]
+    return render_template('results.html', location=location,temp=temp,
+                           feels_like=feels_like, weather=weather )
 
-
-if __name__== '__main__':
-    app.run() #this ensures the app only run once and multiple instances are not crated
 
 
 def get_api_key():
@@ -28,7 +32,7 @@ def get_api_key():
     return config['openweathermap']['api']
 
 def get_weather_results(zip_code, api_key ):
-    api_url= 'http://api.openweathermap.org/data/2.5/weather?zip={},&appid={}'.format(zip_code, api_key)
+    api_url= 'http://api.openweathermap.org/data/2.5/weather?zip={}&units=imperial&appid={}'.format(zip_code, api_key)
     r= requests.get(api_url)
     return r.json()
     #python will go ahead and request the data from the api url then
@@ -37,3 +41,6 @@ def get_weather_results(zip_code, api_key ):
 
 print(get_weather_results("95129", get_api_key()))
 
+
+if __name__== '__main__':
+    app.run() #this ensures the app only run once and multiple instances are not crated
