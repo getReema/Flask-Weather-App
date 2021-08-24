@@ -12,20 +12,43 @@ app= Flask(__name__) #name is configured to be the name of the application durin
 #route for index page
 @app.route('/')
 def weather_dashboard():
-    return render_template('home.html')
+    return render_template('home.html', results=None)
 
 #route for result page
 @app.route('/results', methods=['POST']) #the way to access this is via a POST Req
 def render_results():
+    results = {}
+    data = ""
     zip_code= request.form['zipCode'] #Accessing the html element named zipCode
     api_key= get_api_key()
-    data= get_weather_results(zip_code,api_key)
+    try:
+        data= get_weather_results(zip_code,api_key)
+    except Exception:
+        track= get_current_traceback(skip=1, show_hidden_frames=True,
+        ignore_system_exceptions=False)
+        track.log()
+        abort(500)
+        return render_template('home.html', results=None )
+
     temp= "{0:.2f}".format(data["main"]["temp"]) #to get a value from the dictionary as string
     feels_like= "{0:.2f}".format(data["main"]["feels_like"])
     weather= data["weather"][0]["main"] #array not a dictionary
     location= data["name"]
-    return render_template('results.html', location=location,temp=temp,
-                           feels_like=feels_like, weather=weather )
+    results= {
+       "location" : location,
+       "temp": temp,
+       "feels_like": feels_like,
+       "weather": weather
+    }
+    return render_template('home.html', results=results )
+
+@app.errorhandler(500)
+def internal_error(error):
+    return "Invalid Zip Code of a country"
+
+@app.errorhandler(404)
+def not_found(error):
+    return "404 error",404
 
 def get_api_key():
     config=configparser.ConfigParser()
